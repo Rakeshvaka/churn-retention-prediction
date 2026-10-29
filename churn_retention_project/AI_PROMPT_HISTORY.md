@@ -43,3 +43,11 @@ The developer:
 Before submission, compare this document against the complete ChatGPT conversation history and any other AI tools used. Add the original wording of all missing prompts and identify the tools used.
 
 Do not describe this partial record as complete until that verification has been performed.
+
+## 6. Prompt History Verification
+
+The prompts currently recorded in this document are not a complete transcript of all AI interactions.
+
+The developer must verify the original prompts from the project-development conversation and any other AI tools used. Where the original wording cannot be recovered, entries must be labelled as reconstructed summaries rather than verbatim prompts.
+
+The prompt history must not claim to be complete until all relevant AI interactions have been checked against the submission requirements.
