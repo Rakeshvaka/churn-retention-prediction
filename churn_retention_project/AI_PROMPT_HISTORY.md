@@ -17,6 +17,21 @@ The following are exact user messages visible in the current conversation:
 
 These messages relate to reviewing the latest code, clarifying instructions, and continuing the documentation work. They do not represent the full history of project-development prompts.
 
+## Additional Reconstructed Prompt Topics
+
+The following project requests are reconstructed from the available conversation context. They are not exact quotations and should not be treated as a complete prompt transcript.
+
+1. Review the current retention metrics implementation and exclude deliberately labelled anomalies from the clean experiment metrics.
+2. Review the existing test file and identify additional automated checks for retention metrics.
+3. Verify that the generator produces reproducible CSV outputs when run with the same seed and scale.
+4. Review the README and identify missing project-submission documentation.
+5. Prepare AI usage documentation describing AI assistance, developer review, validation, assumptions, and limitations.
+6. Document design decisions for synthetic churn generation, offer eligibility, treatment/control assignment, anomaly injection, and retention metrics.
+7. Verify the repository by cloning it into a fresh directory, running the automated tests, and generating sample data.
+8. Review the final submission checklist and identify any remaining requirements.
+
+**Verification note:** These summaries describe known development activities. The original wording of every prompt, including prompts submitted during earlier sessions and to other AI tools, has not been fully verified.
+
 ## 3. Reconstructed AI Assistance Topics
 
 The available development context indicates that AI assistance was used for the following activities. These entries summarize topics and are **not verbatim prompts**.
