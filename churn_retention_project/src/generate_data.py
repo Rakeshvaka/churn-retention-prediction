@@ -208,6 +208,7 @@ def generate(scale=20000, seed=DEFAULT_SEED, out="data/generated", inject_anomal
             # Duplicate attribution is explicitly labelled, not hidden.
             r = retention_df.iloc[0].copy()
             r["retention_outcome_id"] = "RET-ANOM-0003"
+            r["issue_type"] = "MULTIPLE_OFFER_ATTRIBUTION"
             r["campaign_contact_id"] = retention_df.iloc[0]["campaign_contact_id"]
             retention_df = pd.concat([retention_df, pd.DataFrame([r])], ignore_index=True)
             ground_truth.append({"anomaly_id": "ANOM-0003", "entity": "RetentionOutcome", "record_id": "RET-ANOM-0003", "issue_type": "MULTIPLE_OFFER_ATTRIBUTION", "expected_detection": "A customer should have at most one attributed retention outcome in this single-offer experiment", "severity": "MEDIUM"})
@@ -232,10 +233,64 @@ def generate(scale=20000, seed=DEFAULT_SEED, out="data/generated", inject_anomal
     for name, df in tables.items():
         csv_path = out / f"{name}.csv"
         manifest["tables"][name] = {"rows": int(len(df)), "sha256": hashlib.sha256(csv_path.read_bytes()).hexdigest()}
-    (out / "source_manifest.json").write_text(json.dumps(manifest, indent=2))
+        (out / "source_manifest.json").write_text(json.dumps(manifest, indent=2))
     validation = validate_tables(tables)
+    validation["retention_metrics"] = calculate_retention_metrics(tables)
     (out / "validation_summary.json").write_text(json.dumps(validation, indent=2))
     return tables, validation
+
+def calculate_retention_metrics(tables):
+    contacts = tables["CampaignContact"]
+    outcomes = tables["RetentionOutcome"]
+
+    experiment = outcomes.merge(
+        contacts[
+            ["campaign_contact_id", "experiment_group"]
+        ],
+        on="campaign_contact_id",
+        how="left",
+        validate="many_to_one"
+    )
+
+    results = {}
+
+    for group in ["TREATMENT", "CONTROL"]:
+        subset = experiment[
+            experiment["experiment_group"] == group
+        ]
+
+        results[group] = {
+            "customers": int(len(subset)),
+            "retention_rate": (
+                float(subset["retained_90d"].mean())
+                if len(subset) > 0 else None
+            ),
+            "total_offer_cost": float(subset["offer_cost"].sum())
+        }
+
+    treatment_rate = results["TREATMENT"]["retention_rate"]
+    control_rate = results["CONTROL"]["retention_rate"]
+
+    if treatment_rate is not None and control_rate is not None:
+        lift = treatment_rate - control_rate
+
+        results["incremental_retention_lift"] = float(lift)
+
+        additional_retained = (
+            lift * results["TREATMENT"]["customers"]
+        )
+
+        treatment_cost = results["TREATMENT"]["total_offer_cost"]
+
+        results["cost_per_additional_retained_customer"] = (
+            float(treatment_cost / additional_retained)
+            if additional_retained > 0 else None
+        )
+    else:
+        results["incremental_retention_lift"] = None
+        results["cost_per_additional_retained_customer"] = None
+
+    return results
 
 def validate_tables(t):
     issues = []
@@ -270,6 +325,48 @@ def validate_tables(t):
     if (t["UsageSnapshot"].usage_units < 0).any(): issues.append("UsageSnapshot: negative usage")
     if not set(t["BillingEvent"].payment_status) <= {"PAID","FAILED"}: issues.append("BillingEvent: invalid payment_status")
     if not set(c.experiment_group) <= {"TREATMENT","CONTROL","NOT_ASSIGNED"}: issues.append("CampaignContact: invalid experiment_group")
+    
+    # Independently detect business-rule violations.
+    campaign = t["CampaignContact"]
+    churn = t["ChurnOutcome"]
+    retention = t["RetentionOutcome"]
+
+    detected = {}
+
+    # 1. Ineligible customer must not receive an offer.
+    detected["INELIGIBLE_OFFER_SENT"] = int((
+        (campaign["eligibility_status"] == "INELIGIBLE") &
+        (campaign["contact_status"] == "SENT")
+    ).sum())
+
+    # 2. Control customers must not receive the offer.
+    detected["TREATMENT_CONTROL_LEAKAGE"] = int((
+        (campaign["experiment_group"] == "CONTROL") &
+        (campaign["contact_status"] == "SENT")
+    ).sum())
+
+    # 3. Positive churn labels must have valid dates.
+    prediction = pd.to_datetime(churn["prediction_date"], errors="coerce")
+    churn_date = pd.to_datetime(churn["churn_date"], errors="coerce")
+    horizon_end = prediction + pd.to_timedelta(
+        pd.to_numeric(churn["horizon_days"], errors="coerce"), unit="D"
+    )
+    positive = churn["churned_within_horizon"].eq(1)
+
+    invalid_churn = positive & (
+        churn_date.isna() |
+        (churn_date <= prediction) |
+        (churn_date > horizon_end)
+    )
+    detected["CHURN_BEFORE_PREDICTION_DATE"] = int(invalid_churn.sum())
+
+    # 4. A customer must not have multiple attributed outcomes
+    # in this single-offer campaign.
+    duplicate_attribution = retention["customer_id"].duplicated(keep=False)
+    detected["MULTIPLE_OFFER_ATTRIBUTION"] = int(
+        duplicate_attribution.sum()
+    )
+
     # Expected anomalies are reported separately and must not make base referential integrity fail.
     expected_anomalies = {
         "INELIGIBLE_OFFER_SENT": int((c.issue_type == "INELIGIBLE_OFFER_SENT").sum()),
@@ -277,9 +374,15 @@ def validate_tables(t):
         "CHURN_BEFORE_PREDICTION_DATE": int((t["ChurnOutcome"].issue_type == "CHURN_BEFORE_PREDICTION_DATE").sum()),
         "MULTIPLE_OFFER_ATTRIBUTION": int((t["RetentionOutcome"].issue_type == "MULTIPLE_OFFER_ATTRIBUTION").sum())
     }
-    return {"passed_structural_checks": len(issues) == 0, "structural_issues": issues,
-            "expected_anomalies_detected_by_label": expected_anomalies,
-            "row_counts": {k: int(len(v)) for k,v in t.items()}}
+    
+    return {
+        "passed_structural_checks": len(issues) == 0,
+        "structural_issues": issues,
+        "expected_anomalies_detected_by_label": expected_anomalies,
+        "detected_business_rule_violations": detected,
+        "row_counts": {k: int(len(v)) for k, v in t.items()}
+    }
+
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()

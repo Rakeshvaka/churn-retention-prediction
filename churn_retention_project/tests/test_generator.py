@@ -24,3 +24,25 @@ def test_anomalies_are_labelled(tmp_path):
         "INELIGIBLE_OFFER_SENT", "TREATMENT_CONTROL_LEAKAGE",
         "MULTIPLE_OFFER_ATTRIBUTION", "CHURN_BEFORE_PREDICTION_DATE"
     }
+
+def test_all_required_anomalies_are_detected(tmp_path):
+    tables, summary = generate(
+        scale=100,
+        seed=20261022,
+        out=tmp_path / "anomaly_test",
+        inject_anomalies=True
+    )
+
+    detected = summary["detected_business_rule_violations"]
+
+    required = [
+        "INELIGIBLE_OFFER_SENT",
+        "TREATMENT_CONTROL_LEAKAGE",
+        "CHURN_BEFORE_PREDICTION_DATE",
+        "MULTIPLE_OFFER_ATTRIBUTION",
+    ]
+
+    for anomaly in required:
+        assert detected[anomaly] >= 1, (
+            f"Required anomaly was not detected: {anomaly}"
+        )
