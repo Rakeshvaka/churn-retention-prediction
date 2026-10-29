@@ -65,3 +65,29 @@ def test_retention_metrics_are_present(tmp_path):
     assert "outcome_completeness_rate" in metrics
     assert "incremental_retention_lift" in metrics
     assert "cost_per_additional_retained_customer" in metrics
+
+
+def test_retention_metrics_exclude_labelled_anomalies(tmp_path):
+    tables, summary = generate(
+        scale=100,
+        seed=20261022,
+        out=tmp_path / "clean_metrics",
+        inject_anomalies=True
+    )
+
+    metrics = summary["retention_metrics"]
+
+    # Control group must have no offer cost.
+    assert metrics["CONTROL"]["total_offer_cost"] == 0.0
+
+    # Both experiment groups must have valid retention rates.
+    assert 0 <= metrics["TREATMENT"]["retention_rate"] <= 1
+    assert 0 <= metrics["CONTROL"]["retention_rate"] <= 1
+
+    # The clean experiment cohort must exclude the two labelled
+    # campaign-contact anomalies.
+    assert (
+        metrics["assigned_customers"]["TREATMENT"]
+        + metrics["assigned_customers"]["CONTROL"]
+        <= len(tables["CampaignContact"]) - 2
+    )
