@@ -296,7 +296,11 @@ def calculate_retention_metrics(tables):
                 float(subset["retained_90d"].mean())
                 if len(subset) > 0 else None
             ),
-            "total_offer_cost": float(subset["offer_cost"].sum())
+            "total_offer_cost": (
+    float(subset["offer_cost"].sum())
+    if group == "TREATMENT"
+    else 0.0
+)
         }
 
     treatment_rate = results["TREATMENT"]["retention_rate"]
