@@ -1,0 +1,48 @@
+{
+  "seed": 20261022,
+  "scale": 100,
+  "prediction_date": "2026-01-01",
+  "churn_horizon_days": 90,
+  "tables": {
+    "Customer": {
+      "rows": 100,
+      "sha256": "55311fc3d45b99bec5f5ab94fcb1f5973484b7a5da6d1ac7c9ffb79e3c053202"
+    },
+    "Subscription": {
+      "rows": 100,
+      "sha256": "67e1cbb2cb1f87ef4a79675ad5f054e918cb76b0bc03c04147a4d67bb65d13f1"
+    },
+    "UsageSnapshot": {
+      "rows": 1800,
+      "sha256": "c7a23bff1ac21a92d1f85884a6e7d1e9b342cc9368f6e3f5213cd2991060d26c"
+    },
+    "BillingEvent": {
+      "rows": 1800,
+      "sha256": "f9cf30e3bf9520665c71306d73b6807177321d31b5563e893b51f56fa2fc17ab"
+    },
+    "SupportCase": {
+      "rows": 107,
+      "sha256": "04c21b23f0da5b44f2addebe4e70c9badc6a8fb77c07b4b86883e908f713c44b"
+    },
+    "Offer": {
+      "rows": 3,
+      "sha256": "43fc99cf4a1b7d602d754fb6711d2721f0210a3e2224a80a355c73feebd50d95"
+    },
+    "EligibilityRule": {
+      "rows": 3,
+      "sha256": "fedca204da4206de398e8ca8f850e5b779b6053ee6a1572c6303f904364efd3d"
+    },
+    "CampaignContact": {
+      "rows": 100,
+      "sha256": "b75858cc7fbb31710c840aeacc1df02dd8a1c1490f3f370c6e35928b2cfca4b2"
+    },
+    "ChurnOutcome": {
+      "rows": 100,
+      "sha256": "b3ef3acd6d8b92807ecf4fa961708ce7cc886897250f5cd0df9a340cbdd671c7"
+    },
+    "RetentionOutcome": {
+      "rows": 76,
+      "sha256": "c8f4f5016884ea391e7f2fceccd6e0433338829844e53d7c7c715b6226d211f5"
+    }
+  }
+}

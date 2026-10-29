@@ -1,0 +1,22 @@
+{
+  "passed_structural_checks": true,
+  "structural_issues": [],
+  "expected_anomalies_detected_by_label": {
+    "INELIGIBLE_OFFER_SENT": 1,
+    "TREATMENT_CONTROL_LEAKAGE": 1,
+    "CHURN_BEFORE_PREDICTION_DATE": 1,
+    "MULTIPLE_OFFER_ATTRIBUTION": 0
+  },
+  "row_counts": {
+    "Customer": 100,
+    "Subscription": 100,
+    "UsageSnapshot": 1800,
+    "BillingEvent": 1800,
+    "SupportCase": 107,
+    "Offer": 3,
+    "EligibilityRule": 3,
+    "CampaignContact": 100,
+    "ChurnOutcome": 100,
+    "RetentionOutcome": 76
+  }
+}

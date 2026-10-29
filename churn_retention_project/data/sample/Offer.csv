@@ -1,0 +1,4 @@
+offer_id,offer_name,discount_pct,duration_months,unit_cost,min_margin_pct,effective_from,effective_to,status
+OFF-2026-000001,10pct_3months,10.0,3,12.0,35.0,2026-01-01,2026-12-31,ACTIVE
+OFF-2026-000002,service_credit,0.0,1,8.0,30.0,2026-01-01,2026-12-31,ACTIVE
+OFF-2026-000003,premium_upgrade,5.0,2,15.0,40.0,2026-01-01,2026-12-31,ACTIVE

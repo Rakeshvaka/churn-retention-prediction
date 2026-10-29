@@ -1,0 +1,5 @@
+anomaly_id,entity,record_id,issue_type,expected_detection,severity
+ANOM-0001,CampaignContact,CONTACT-CUS-000001-2026-01,INELIGIBLE_OFFER_SENT,A contact marked SENT must not be INELIGIBLE,HIGH
+ANOM-0002,CampaignContact,CONTACT-CUS-000002-2026-01,TREATMENT_CONTROL_LEAKAGE,Control group must not receive the retention offer,HIGH
+ANOM-0003,RetentionOutcome,RET-ANOM-0003,MULTIPLE_OFFER_ATTRIBUTION,A customer should have at most one attributed retention outcome in this single-offer experiment,MEDIUM
+ANOM-0004,ChurnOutcome,CHURN-CUS-000003-2026,CHURN_BEFORE_PREDICTION_DATE,A forward-horizon churn date must be after prediction_date and within horizon,HIGH

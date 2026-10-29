@@ -1,0 +1,702 @@
+{
+  "Customer": [
+    [
+      "customer_id",
+      "string",
+      "required",
+      "CUS-######",
+      "customer identifier",
+      "unique; pattern ^CUS-\\d{6}$"
+    ],
+    [
+      "signup_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "not after prediction date for baseline"
+    ],
+    [
+      "region",
+      "string",
+      "required",
+      "NORTH|SOUTH|EAST|WEST",
+      "category",
+      "must be allowed enum"
+    ],
+    [
+      "segment",
+      "string",
+      "required",
+      "BASIC|STANDARD|PREMIUM",
+      "product cohort",
+      "must be allowed enum"
+    ],
+    [
+      "customer_status",
+      "string",
+      "required",
+      "ACTIVE|SUSPENDED",
+      "lifecycle",
+      "must be allowed enum"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or labelled anomaly",
+      "diagnostic",
+      "blank for normal records"
+    ]
+  ],
+  "Subscription": [
+    [
+      "subscription_id",
+      "string",
+      "required",
+      "SUB-CUS-######-01",
+      "subscription identifier",
+      "unique; customer_id must exist"
+    ],
+    [
+      "customer_id",
+      "string",
+      "required",
+      "Customer FK",
+      "identifier",
+      "must reference Customer"
+    ],
+    [
+      "product_cohort",
+      "string",
+      "required",
+      "BASIC|STANDARD|PREMIUM",
+      "category",
+      "must match plan cohort"
+    ],
+    [
+      "plan_name",
+      "string",
+      "required",
+      "Basic|Standard|Premium",
+      "category",
+      "must be allowed enum"
+    ],
+    [
+      "monthly_price",
+      "decimal",
+      "required",
+      ">=0",
+      "currency units/month",
+      "must be nonnegative"
+    ],
+    [
+      "start_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "must be <= end_date if end_date exists"
+    ],
+    [
+      "end_date",
+      "date",
+      "optional",
+      "ISO date or blank",
+      "date",
+      "must not precede start_date"
+    ],
+    [
+      "subscription_status",
+      "string",
+      "required",
+      "ACTIVE|CANCELLED|SUSPENDED",
+      "lifecycle",
+      "must be allowed enum"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or label",
+      "diagnostic",
+      "blank for normal records"
+    ]
+  ],
+  "UsageSnapshot": [
+    [
+      "snapshot_id",
+      "string",
+      "required",
+      "SNAP-SUB-...-YYYY-MM",
+      "snapshot identifier",
+      "unique"
+    ],
+    [
+      "subscription_id",
+      "string",
+      "required",
+      "Subscription FK",
+      "identifier",
+      "must reference Subscription"
+    ],
+    [
+      "snapshot_month",
+      "date",
+      "required",
+      "month start ISO date",
+      "date",
+      "one snapshot per subscription-month"
+    ],
+    [
+      "usage_units",
+      "decimal",
+      "required",
+      ">=0",
+      "usage units/month",
+      "nonnegative"
+    ],
+    [
+      "active_days",
+      "integer",
+      "required",
+      "0..31",
+      "days/month",
+      "bounded by calendar month"
+    ],
+    [
+      "sessions",
+      "integer",
+      "required",
+      ">=0",
+      "sessions/month",
+      "nonnegative"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or label",
+      "diagnostic",
+      "blank for normal records"
+    ]
+  ],
+  "BillingEvent": [
+    [
+      "billing_event_id",
+      "string",
+      "required",
+      "BILL-SUB-...-YYYY-MM",
+      "event identifier",
+      "unique"
+    ],
+    [
+      "subscription_id",
+      "string",
+      "required",
+      "Subscription FK",
+      "identifier",
+      "must reference Subscription"
+    ],
+    [
+      "event_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "not before subscription start"
+    ],
+    [
+      "event_type",
+      "string",
+      "required",
+      "INVOICE|PAYMENT|REFUND|ADJUSTMENT",
+      "event category",
+      "allowed enum"
+    ],
+    [
+      "amount",
+      "decimal",
+      "required",
+      ">=0",
+      "currency units",
+      "nonnegative"
+    ],
+    [
+      "payment_status",
+      "string",
+      "required",
+      "PAID|FAILED",
+      "status",
+      "allowed enum"
+    ],
+    [
+      "balance_after_event",
+      "decimal",
+      "required",
+      ">=0",
+      "currency units",
+      "reconcile to event logic"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or label",
+      "diagnostic",
+      "blank for normal records"
+    ]
+  ],
+  "SupportCase": [
+    [
+      "support_case_id",
+      "string",
+      "required",
+      "CASE-SUB-...-YYYY-MM",
+      "case identifier",
+      "unique"
+    ],
+    [
+      "customer_id",
+      "string",
+      "required",
+      "Customer FK",
+      "identifier",
+      "must reference Customer"
+    ],
+    [
+      "subscription_id",
+      "string",
+      "optional",
+      "Subscription FK",
+      "identifier",
+      "must reference Subscription if supplied"
+    ],
+    [
+      "opened_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "must be within subscription lifecycle"
+    ],
+    [
+      "case_category",
+      "string",
+      "required",
+      "BILLING|TECHNICAL|CANCELLATION|GENERAL",
+      "category",
+      "allowed enum"
+    ],
+    [
+      "severity",
+      "string",
+      "required",
+      "LOW|MEDIUM|HIGH",
+      "severity",
+      "allowed enum"
+    ],
+    [
+      "case_status",
+      "string",
+      "required",
+      "OPEN|CLOSED",
+      "lifecycle",
+      "allowed enum"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or label",
+      "diagnostic",
+      "blank for normal records"
+    ]
+  ],
+  "Offer": [
+    [
+      "offer_id",
+      "string",
+      "required",
+      "OFF-2026-######",
+      "offer identifier",
+      "unique"
+    ],
+    [
+      "offer_name",
+      "string",
+      "required",
+      "nonempty",
+      "label",
+      "nonempty"
+    ],
+    [
+      "discount_pct",
+      "decimal",
+      "required",
+      "0..100",
+      "percent",
+      "bounded"
+    ],
+    [
+      "duration_months",
+      "integer",
+      "required",
+      ">0",
+      "months",
+      "positive"
+    ],
+    [
+      "unit_cost",
+      "decimal",
+      "required",
+      ">=0",
+      "currency units",
+      "nonnegative"
+    ],
+    [
+      "min_margin_pct",
+      "decimal",
+      "required",
+      "0..100",
+      "percent",
+      "bounded"
+    ],
+    [
+      "effective_from",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "<= effective_to"
+    ],
+    [
+      "effective_to",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      ">= effective_from"
+    ],
+    [
+      "status",
+      "string",
+      "required",
+      "ACTIVE|INACTIVE",
+      "lifecycle",
+      "allowed enum"
+    ]
+  ],
+  "EligibilityRule": [
+    [
+      "eligibility_rule_id",
+      "string",
+      "required",
+      "RULE-######",
+      "rule identifier",
+      "unique"
+    ],
+    [
+      "offer_id",
+      "string",
+      "required",
+      "Offer FK",
+      "identifier",
+      "must reference Offer"
+    ],
+    [
+      "min_risk_score",
+      "decimal",
+      "required",
+      "0..1",
+      "risk probability",
+      "bounded"
+    ],
+    [
+      "allowed_segments",
+      "string",
+      "required",
+      "semicolon-delimited enum list",
+      "segments",
+      "all values must be valid"
+    ],
+    [
+      "max_discount_pct",
+      "decimal",
+      "required",
+      "0..100",
+      "percent",
+      "bounded"
+    ],
+    [
+      "min_margin_pct",
+      "decimal",
+      "required",
+      "0..100",
+      "percent",
+      "bounded"
+    ],
+    [
+      "effective_from",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "<= effective_to"
+    ],
+    [
+      "effective_to",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      ">= effective_from"
+    ],
+    [
+      "is_active",
+      "boolean",
+      "required",
+      "true|false",
+      "flag",
+      "boolean"
+    ]
+  ],
+  "CampaignContact": [
+    [
+      "campaign_contact_id",
+      "string",
+      "required",
+      "CONTACT-CUS-...-YYYY-MM",
+      "assignment identifier",
+      "unique"
+    ],
+    [
+      "customer_id",
+      "string",
+      "required",
+      "Customer FK",
+      "identifier",
+      "must reference Customer"
+    ],
+    [
+      "offer_id",
+      "string",
+      "optional",
+      "Offer FK or blank",
+      "identifier",
+      "must reference Offer when present"
+    ],
+    [
+      "eligibility_rule_id",
+      "string",
+      "optional",
+      "EligibilityRule FK or blank",
+      "identifier",
+      "must reference rule when present"
+    ],
+    [
+      "contact_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "within offer effective period when offer present"
+    ],
+    [
+      "eligibility_status",
+      "string",
+      "required",
+      "ELIGIBLE|INELIGIBLE",
+      "decision",
+      "must match eligibility decision"
+    ],
+    [
+      "exception_reason",
+      "string",
+      "optional",
+      "reason code or blank",
+      "diagnostic",
+      "required when ineligible"
+    ],
+    [
+      "experiment_group",
+      "string",
+      "required",
+      "TREATMENT|CONTROL|NOT_ASSIGNED",
+      "experiment arm",
+      "eligible customers only may be assigned"
+    ],
+    [
+      "contact_status",
+      "string",
+      "required",
+      "SENT|HOLDOUT|NOT_SENT",
+      "delivery state",
+      "control cannot be SENT"
+    ],
+    [
+      "assignment_seed",
+      "integer",
+      "required",
+      "integer",
+      "seed",
+      "reproducibility"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or labelled anomaly",
+      "diagnostic",
+      "anomaly must appear in ground truth"
+    ]
+  ],
+  "ChurnOutcome": [
+    [
+      "churn_outcome_id",
+      "string",
+      "required",
+      "CHURN-CUS-...-2026",
+      "outcome identifier",
+      "unique"
+    ],
+    [
+      "customer_id",
+      "string",
+      "required",
+      "Customer FK",
+      "identifier",
+      "must reference Customer"
+    ],
+    [
+      "prediction_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "feature cutoff"
+    ],
+    [
+      "horizon_days",
+      "integer",
+      "required",
+      ">0",
+      "days",
+      "positive"
+    ],
+    [
+      "churned_within_horizon",
+      "integer",
+      "required",
+      "0|1",
+      "binary label",
+      "derived from churn event date"
+    ],
+    [
+      "churn_date",
+      "date",
+      "optional",
+      "ISO date or blank",
+      "date",
+      "if label=1 must be after prediction date and within horizon"
+    ],
+    [
+      "churn_type",
+      "string",
+      "optional",
+      "VOLUNTARY|INVOLUNTARY|blank",
+      "category",
+      "required when churn label=1"
+    ],
+    [
+      "risk_score",
+      "decimal",
+      "required",
+      "0..1",
+      "score",
+      "derived from pre-date features"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or labelled anomaly",
+      "diagnostic",
+      "anomaly must appear in ground truth"
+    ]
+  ],
+  "RetentionOutcome": [
+    [
+      "retention_outcome_id",
+      "string",
+      "required",
+      "RET-...",
+      "outcome identifier",
+      "unique"
+    ],
+    [
+      "campaign_contact_id",
+      "string",
+      "required",
+      "CampaignContact FK",
+      "identifier",
+      "must reference contact"
+    ],
+    [
+      "customer_id",
+      "string",
+      "required",
+      "Customer FK",
+      "identifier",
+      "must match contact customer"
+    ],
+    [
+      "offer_id",
+      "string",
+      "required",
+      "Offer FK",
+      "identifier",
+      "must match contact offer"
+    ],
+    [
+      "measurement_date",
+      "date",
+      "required",
+      "ISO date",
+      "date",
+      "after contact date by horizon"
+    ],
+    [
+      "retained_90d",
+      "integer",
+      "required",
+      "0|1",
+      "binary outcome",
+      "derived from outcome process"
+    ],
+    [
+      "offer_cost",
+      "decimal",
+      "required",
+      ">=0",
+      "currency units",
+      "zero for control"
+    ],
+    [
+      "estimated_margin_after_offer",
+      "decimal",
+      "required",
+      "currency units",
+      "currency units",
+      "derived from price, discount and offer cost"
+    ],
+    [
+      "issue_type",
+      "string",
+      "optional",
+      "blank or labelled anomaly",
+      "diagnostic",
+      "anomaly must appear in ground truth"
+    ]
+  ]
+}
