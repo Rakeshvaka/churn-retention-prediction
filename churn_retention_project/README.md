@@ -43,13 +43,37 @@ The generator creates CSV and JSON for the ten core entities, a separate `ground
 - Many-to-many relationships, if expanded to multiple campaigns/offers per customer, should be modeled using CampaignContact as a bridge between Customer and Offer.
 
 ## Core validation
-The generator checks primary-key uniqueness, foreign-key integrity, enum values, and nonnegative usage. The labelled negative scenarios are:
-1. Churn date before prediction date.
-2. Offer sent to ineligible customer.
-3. Treatment/control leakage.
-4. Retention outcome attributed more than once.
+The generator performs structural validation and business-rule validation.
 
-The anomalies are deliberate test fixtures; use `issue_type` and `ground_truth.csv` to distinguish them from normal records. Do not treat the intentionally injected dataset as fully clean.
+**Structural checks**
+- Primary-key uniqueness
+- Foreign-key integrity
+- Valid enumeration values
+- Nonnegative usage values
+
+**Business-rule anomaly detection**
+
+The validation summary reports detected violations for four categories:
+
+1. `INELIGIBLE_OFFER_SENT` — an ineligible customer receives an offer.
+2. `TREATMENT_CONTROL_LEAKAGE` — a control-group customer receives a treatment offer.
+3. `CHURN_BEFORE_PREDICTION_DATE` — a positive churn label has a missing or invalid churn date outside the prediction horizon.
+4. `MULTIPLE_OFFER_ATTRIBUTION` — a customer has multiple retention outcomes in a single-campaign dataset.
+
+The `validation_summary.json` file reports `detected_business_rule_violations` separately from `expected_anomalies_detected_by_label`. The first counts records matching each rule; the second counts deliberately labelled anomaly fixtures. Counts can differ when multiple records match a rule.
+
+**Retention experiment metrics**
+
+The validation summary also reports:
+- Number of customers assigned to treatment and control.
+- Missing retention outcomes and outcome completeness rates by group.
+- Retention rate and total offer cost for each group.
+- Incremental retention lift, calculated as treatment retention rate minus control retention rate.
+- Cost per additional retained customer, calculated using the difference in retained-customer counts and treatment offer cost.
+
+These metrics describe the synthetic experiment. They do not establish statistical significance or guarantee real-world campaign performance.
+
+The anomalies are deliberate test fixtures. Use `issue_type` and `ground_truth.csv` to identify the injected records. Do not treat the intentionally injected dataset as fully clean.
 
 ## Reproducibility
 Run the same command twice with the same seed and compare `source_manifest.json` checksums. The seed and scale are configurable. Do not commit large generated output unless your repository policy requires it; commit a small sample and the generator.

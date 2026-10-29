@@ -46,3 +46,22 @@ def test_all_required_anomalies_are_detected(tmp_path):
         assert detected[anomaly] >= 1, (
             f"Required anomaly was not detected: {anomaly}"
         )
+
+
+def test_retention_metrics_are_present(tmp_path):
+    tables, summary = generate(
+        scale=100,
+        seed=20261022,
+        out=tmp_path / "metrics_test",
+        inject_anomalies=True
+    )
+
+    assert "retention_metrics" in summary
+
+    metrics = summary["retention_metrics"]
+
+    assert "assigned_customers" in metrics
+    assert "missing_retention_outcomes" in metrics
+    assert "outcome_completeness_rate" in metrics
+    assert "incremental_retention_lift" in metrics
+    assert "cost_per_additional_retained_customer" in metrics
