@@ -243,6 +243,22 @@ def calculate_retention_metrics(tables):
     contacts = tables["CampaignContact"]
     outcomes = tables["RetentionOutcome"]
 
+    # Exclude deliberately injected anomaly records from experiment metrics.
+    outcomes = outcomes[
+        outcomes["issue_type"].fillna("") == ""
+    ].copy()
+
+    assigned_customers = contacts[
+        contacts["experiment_group"].isin(["TREATMENT", "CONTROL"])
+    ]
+
+    assigned_counts = {
+        group: int(
+            (assigned_customers["experiment_group"] == group).sum()
+        )
+        for group in ["TREATMENT", "CONTROL"]
+    }
+
     experiment = outcomes.merge(
         contacts[
             ["campaign_contact_id", "experiment_group"]
@@ -251,14 +267,29 @@ def calculate_retention_metrics(tables):
         how="left",
         validate="many_to_one"
     )
-
     results = {}
+    results["assigned_customers"] = assigned_counts
+    results["missing_retention_outcomes"] = {}
+    results["outcome_completeness_rate"] = {}
 
     for group in ["TREATMENT", "CONTROL"]:
         subset = experiment[
             experiment["experiment_group"] == group
         ]
 
+        results["missing_retention_outcomes"][group] = (
+            assigned_counts[group] - int(subset["customer_id"].nunique())
+        )
+        results["outcome_completeness_rate"][group] = (
+            round(
+                1 - (
+                    results["missing_retention_outcomes"][group]
+                    / assigned_counts[group]
+                ),
+                4
+            )
+            if assigned_counts[group] > 0 else None
+        )
         results[group] = {
             "customers": int(len(subset)),
             "retention_rate": (
